@@ -1,0 +1,235 @@
+﻿@page "/"
+@inject HttpClient Http;
+
+<head>
+</head>
+<style>
+    table, th, td {
+        border: 2px solid black;
+    }
+</style>
+<body>
+
+
+    <h2>Tabela de Pessoas</h2>
+
+    <button class="btn btn-dark" style="margin-left:1100px" @onclick="Exibir">+</button>
+    
+    <table style="width:100%">
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Opcoes</th>
+        </tr>
+        @foreach (var x in listpessoas)
+        {
+
+<tr>
+
+    <td>@x.Id</td>
+    <td>@x.Nome</td>
+    <td>@x.Idade</td>
+    <td><button @onclick="() => Remover(x.Id)" class="btn btn-dark">Deletar</button> <button class="btn btn-dark" @onclick="()=>AlterarPessoa(x)">Alterar</button> </td>
+
+
+
+</tr>}
+
+
+    </table>
+
+    <br>
+
+
+
+
+    <div class="container">
+        <div class="row">
+            <div class="Adicionar col-6 col-lg-6" style="visibility:@hiddenAdicionarUsuario">
+                <h2>Adicionar Usuario</h2>
+                <EditForm Model="@pessoa" OnValidSubmit="@Adicionar">
+                    <DataAnnotationsValidator />
+                    <label for="nomeUsuario">Nome: </label>
+                    <InputText @bind-Value="@pessoa.Nome" /><br>
+                    <ValidationMessage For="() => pessoa.Nome" />
+                    <label for="ageUsuario">Idade: </label>
+                    <InputNumber @bind-Value="@pessoa.Idade" /><br>
+                    <ValidationMessage For="() => pessoa.Idade" />
+                    <input type="submit" class="btn btn-dark" @onclick="Esconder">
+                </EditForm>
+
+            </div> <br>
+
+
+            <div class="Alterar col-6 col-lg-6" style="visibility:@teste">
+                <h2>Alterar Usuario</h2>
+                <EditForm Model="@alterarPessoa" OnValidSubmit="@(()=>Alterar(backupPessoa))">
+                    <DataAnnotationsValidator />
+                    <label for="nomeUsuario">Nome: </label>
+                    <InputText @bind-Value="@alterarPessoa.Nome" /> <br>
+                    <ValidationMessage For="() => alterarPessoa.Nome" />
+                    <label for="ageUsuario">Idade: </label>
+                    <InputNumber @bind-Value="@alterarPessoa.Idade" /><br>
+                    <ValidationMessage For="() => alterarPessoa.Idade" />
+                    <input type="submit" class="btn btn-dark">
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+
+
+@code
+{
+    @using WebApplication1.Shared;
+
+    //Variavel que controla a visibilidade do formulario
+    string teste = "hidden";
+    string hiddenAdicionarUsuario = "hidden";
+
+    //Exibir no formulario de Adicionar Usuario
+    public void Exibir()
+    {
+        hiddenAdicionarUsuario = "visible";
+
+    }
+
+    //Esconder no formulario de Adicionar Usuario
+    public void Esconder()
+    {
+        hiddenAdicionarUsuario = "hidden";
+    }
+
+    Pessoa pessoa = new Pessoa(); //instancia do objeto pessoa
+    Pessoa alterarPessoa = new Pessoa(); //Instancia do objeto alterarPessoa pra utilizar no momento da alteracao
+    Pessoa backupPessoa = new Pessoa(); //Backup de antes do usuario trocar seus dados no ALTERAR
+
+
+    List<Pessoa> listpessoas = new List<Pessoa>();
+
+
+
+
+    //Adicionar um usuario na tabela
+    private async void Adicionar()
+    {
+        try
+        {
+            Pessoa pessoaResultado = pessoa;
+            //Envia uma informação do tipo POST pro banco de dados e aguarda uma resposta
+            HttpResponseMessage e =  await Http.PostAsJsonAsync<Pessoa>("api/Pessoas/AddPessoa",pessoa);
+
+            if (e.IsSuccessStatusCode)
+            {
+                Pessoa pessoaAdded = await e.Content.ReadFromJsonAsync<Pessoa>();
+
+                listpessoas.Add(pessoaAdded);
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Erro");
+        }
+
+
+    }
+
+    //Guardando o ojeto que vai ser alterado
+    public void AlterarPessoa(Pessoa x)
+    {
+        alterarPessoa = x;
+        backupPessoa = x;
+        teste = "visible";
+    }
+
+    //Metodo que remove os dados do usuario antigo e insere novamente na lista com os dados atualizados e é inserido no mesmo index
+    private async void Alterar(Pessoa x)
+    {
+
+        try
+        {
+            Pessoa p1 = new Pessoa();
+            HttpResponseMessage e = await Http.PutAsJsonAsync<Pessoa>("api/Pessoas/UpdatePessoa", x);
+
+
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Erro");
+        }
+        teste = "hidden";
+
+        StateHasChanged();
+
+    }
+
+    //Metodo para buscar uma informação no banco de dados
+    private async Task GetPessoa ()
+    {
+
+        //Esperando um getAll da tabela Pessoas
+        listpessoas = await Http.GetFromJsonAsync<List<Pessoa>>("api/Pessoas/GetAll");
+
+
+        //await = Http.GetFromJsonAsync<Pessoa>()
+
+
+    }
+
+    //Metodo para remover um usuario da tabela
+    private async void Remover(int ID)
+    {
+
+
+        try
+        {
+            HttpResponseMessage x = await Http.DeleteAsync("api/Pessoas/DeletePessoa?pessoaId=" + ID);// Removendo do banco de dados
+
+            if (x.IsSuccessStatusCode)
+            {
+                //Pessoa pessoaRemover = await x.Content.ReadFromJsonAsync<Pessoa>();
+
+                listpessoas.Remove(listpessoas.First(x => x.Id == ID));
+                StateHasChanged();
+                
+
+            }
+
+
+
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Erro");
+        }
+
+
+
+    }
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetPessoa();
+    }
+
+
+
+
+
+
+
+
+
+
+}
