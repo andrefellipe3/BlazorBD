@@ -25,7 +25,7 @@ namespace WebApplication1.Client
             builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebApplication1.ServerAPI"));
 
             builder.Services.AddApiAuthorization();
-
+            builder.Services.AddDevExpressBlazor();
             await builder.Build().RunAsync();
         }
     }

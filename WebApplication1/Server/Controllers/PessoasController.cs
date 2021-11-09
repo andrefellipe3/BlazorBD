@@ -30,11 +30,8 @@ namespace WebApplication1.Server.Controllers
         [HttpPost]
         public IActionResult AddPessoa(Pessoa p1)
         {
-
             _applicationDbContext.Pessoas.Add(p1); //Adiciona uma nova pessoa no banco de Dados
             _applicationDbContext.SaveChanges(); //Confirma a alteração feita
-
-
             return Ok(p1);
         }
 
@@ -52,8 +49,6 @@ namespace WebApplication1.Server.Controllers
             {
                 return BadRequest();
             }
-
-
         }
 
         //Deleta uma informação no banco de dados 
@@ -64,7 +59,7 @@ namespace WebApplication1.Server.Controllers
             try
             {
                 //PessoaRemove recebe o objeto que irei remover no banco de dados
-                pessoaRemove = _applicationDbContext.Pessoas.FirstOrDefault(x => x.Id == pessoaId);
+                 pessoaRemove = _applicationDbContext.Pessoas.FirstOrDefault(x => x.Id == pessoaId);
                 _applicationDbContext.Remove(pessoaRemove);
                 _applicationDbContext.SaveChanges();
                 
@@ -82,11 +77,8 @@ namespace WebApplication1.Server.Controllers
         [HttpPut]
         public IActionResult UpdatePessoa(Pessoa p1)
         {
-
-
             try
             {
-               
                 var pessoaUpdate = _applicationDbContext.Pessoas.FirstOrDefault(x => x.Id == p1.Id);
                 pessoaUpdate.Nome = p1.Nome;
                 pessoaUpdate.Idade = p1.Idade;
@@ -96,24 +88,7 @@ namespace WebApplication1.Server.Controllers
             {
                 BadRequest();
             }
-
-
-
-
-
-
-
             return Ok();
         }
-
-
-
-
-
-
-
-
     }
-
-   
 }
